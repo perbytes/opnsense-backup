@@ -2,8 +2,22 @@ $apikey = ""
 $apisecret = ""
 
 # Enter your opnsense hostname and set the directory you would like to save the config to.
+
 $hostname = ""
 $backup_dir = "" # Example: C:\Users\JohnDoe\Documents
+
+add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 # Authentication header for the HTTP request
 $auth_header = @{
@@ -15,7 +29,6 @@ $backup_url = "https://$hostname/api/backup/backup/download"
 $backup_file_path = Join-Path -Path $backup_dir -ChildPath $backup_file_name
 
 Invoke-WebRequest -Uri $backup_url -Headers $auth_header -OutFile $backup_file_path
-
 
 # You can change the retention period to suit your needs below. Default: 30 days.
 
